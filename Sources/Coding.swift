@@ -1037,3 +1037,138 @@ fileprivate struct NBTNamelessSingleValueDecodingContainer: SingleValueDecodingC
         return value
     }
 }
+
+// MARK: Encoder
+
+public struct NBTEncoder {
+    public init() {}
+
+    func encodeNamed<T: Encodable>(_ value: T) throws -> [] {
+        let encoder = NBTNamedContainerEncoder()
+        try value.encode(to: encoder)
+    }
+
+    func encodeNameless<T: Encodable>(_ value: T) throws -> [] {
+
+    }
+}
+
+fileprivate class NBTNamedContainerEncoder: AnyNBTEncoder {
+    var codingPath: [any CodingKey] { fatalError("TODO") }
+    var userInfo: [CodingUserInfoKey : Any] { fatalError("TODO") }
+    var nbt: NBT?
+
+    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
+
+    }
+
+    func unkeyedContainer() -> any UnkeyedEncodingContainer {
+
+    }
+
+    func singleValueContainer() -> any SingleValueEncodingContainer {
+        return NBTSingleValueEncodingContainer(encoder: self)
+    }
+}
+
+fileprivate protocol AnyNBTEncoder: Encoder {
+    var nbt: NBT? { get set }
+}
+
+fileprivate struct NBTSingleValueEncodingContainer<T: AnyNBTEncoder>: SingleValueEncodingContainer {
+    mutating func encode<S: Encodable>(_ value: S) throws {
+        try value.encode(to: self.encoder)
+    }
+
+    mutating func encode(_ value: UInt64) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+
+        self.encoder.nbt = .int64(value: value)
+    }
+
+    mutating func encode(_ value: UInt32) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+
+        self.encoder.nbt = .int32(value: value)
+    }
+
+    mutating func encode(_ value: UInt16) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+
+        self.encoder.nbt = .short(value: value)
+    }
+
+    mutating func encode(_ value: UInt8) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+
+        self.encoder.nbt = .byte(value: value)
+    }
+
+    mutating func encode(_ value: UInt) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+    }
+
+    mutating func encode(_ value: Int64) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+
+        self.encoder.nbt = .int64(value: .init(bitPattern: value))
+    }
+
+    mutating func encode(_ value: Int32) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+
+        self.encoder.nbt = .int32(value: .init(bitPattern: value))
+    }
+
+    mutating func encode(_ value: Int16) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+
+        self.encoder.nbt = .short(value: .init(bitPattern: value))
+    }
+
+    mutating func encode(_ value: Int8) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+
+        self.encoder.nbt = .byte(value: .init(bitPattern: value))
+    }
+
+    mutating func encode(_ value: Int) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+    }
+
+    mutating func encode(_ value: Float) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+    }
+
+    mutating func encode(_ value: Double) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+    }
+
+    mutating func encode(_ value: String) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+
+
+    }
+
+    mutating func encode(_ value: Bool) throws {
+        precondition(self.encoder.nbt == nil, "Encode was called twice for the same encoder")
+
+        if value {
+            self.encoder.nbt = .byte(value: 1)
+        } else {
+            self.encoder.nbt = .byte(value: 0)
+        }
+    }
+
+    let codingPath: [any CodingKey]
+
+    mutating func encodeNil() throws {
+        throw EncodingError.invalidValue(Optional<Any>.self, .init(codingPath: self.codingPath, debugDescription: .init("An empty value is not allowed here")))
+    }
+
+    var encoder: T
+
+    init(encoder: T) {
+        self.encoder = encoder
+    }
+}
